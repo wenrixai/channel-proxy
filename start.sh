@@ -30,7 +30,8 @@ if [ -n "$CERTIFICATE_CONTENT" ]; then
         exit 1
     fi
 
-    echo "$CERTIFICATE_CONTENT" > /etc/nginx/cert.crt
+    base64 -d <<< "$CERTIFICATE_CONTENT" > /etc/nginx/cert.crt
+    dos2unix /etc/nginx/cert.crt
     echo "Wrote certificate to /etc/nginx/cert.crt"
 fi
 
@@ -41,7 +42,8 @@ if [ -n "$CERTIFICATE_KEY_CONTENT" ]; then
         exit 1
     fi
 
-    echo "$CERTIFICATE_KEY_CONTENT" > /etc/nginx/cert.key
+    base64 -d <<< "$CERTIFICATE_KEY_CONTENT" > /etc/nginx/cert.key
+    dos2unix /etc/nginx/cert.key
     echo "Wrote certificate key to /etc/nginx/cert.key"
 fi
 
