@@ -4,10 +4,26 @@ set -e
 
 WP_SERVER_DEBUG=${WP_SERVER_DEBUG:-false}
 
+if [ "${WP_SERVER_DEBUG}" = true ]; then
+    set -x
+fi
+
 # Replace environment variables in the nginx configuration, and start nginx
 # Setup default values for environment variables
 export WP_SERVER_PORT=${WP_SERVER_PORT:-8080}
 export WP_SERVER_RESOLVER=${WP_SERVER_RESOLVER:-'8.8.8.8'}
+
+# File includes, generate `include` directives for nginx configuration for every file in WP_SERVER_PATH_INCLUDES
+# The variables are comma-separated, so we need to split them into a string "include file1; include file2; ..."
+WP_SERVER_PATH_INCLUDES=${WP_SERVER_PATH_INCLUDES:-}
+if [ -n "$WP_SERVER_PATH_INCLUDES" ]; then
+    include_directives=""
+    for include_file in $(echo "$WP_SERVER_PATH_INCLUDES" | tr "," "\n"); do
+        include_directives="${include_directives}include ${include_file}; "
+    done
+
+    export WP_SERVER_FILE_INCLUDES="${include_directives}"
+fi
 
 # Create htpasswd file
 export WP_SERVER_HTTP_USER=${WP_SERVER_HTTP_USER:-}
@@ -49,8 +65,6 @@ fi
 
 WP_SERVER_TLS_ENABLED=${WP_SERVER_TLS_ENABLED:-false}
 
-# ----
-
 # TLS certificates, write them to files if provided. If TLS is enabled, the certificates are required and must be provided (exit if not)
 if [ "${WP_SERVER_TLS_ENABLED}" = true ]; then
     if [ -z "$WP_SERVER_TLS_CERTIFICATE" ]; then
@@ -74,6 +88,8 @@ if [ "${WP_SERVER_TLS_ENABLED}" = true ]; then
 
     export WP_SERVER_TLS_DIRECTIVES="${ssl_directives}"
 fi
+
+# ---------
 
 # TravelFusion
 export WP_CHANNELS_TRAVELFUSION_LOGIN_ID=${WP_CHANNELS_TRAVELFUSION_LOGIN_ID:-}
