@@ -9,6 +9,7 @@ COPY nginx.conf /etc/nginx/nginx.conf.template
 
 WORKDIR /
 COPY start.sh /
+COPY travelfusion.lua /
 
 STOPSIGNAL SIGTERM
 

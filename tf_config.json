@@ -1,0 +1,28 @@
+{
+    "12345678": {
+        "airfranceklm": {
+            "AgentLogin": "Wenrix",
+            "AgentIATANumber": "12345678",
+            "AgentIdentifier": "ABCD"
+        },
+        "lufthansagroupndc": {
+            "AgentLogin": "wenrix",
+            "AgentPassword": "abc123!",
+            "AgentIATANumber": "12345678",
+            "AgentIdentifier": "ABCD"
+        }
+    },
+    "87654321": {
+        "airfranceklm": {
+            "AgentLogin": "Wenrix",
+            "AgentIATANumber": "87654321",
+            "AgentIdentifier": "ABCD"
+        },
+        "lufthansagroupndc": {
+            "AgentLogin": "wenrix",
+            "AgentPassword": "abc123!",
+            "AgentIATANumber": "87654321",
+            "AgentIdentifier": "ABCD"
+        }
+    }
+}
