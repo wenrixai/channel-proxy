@@ -97,6 +97,15 @@ fi
 export WP_CHANNELS_TRAVELFUSION_LOGIN_ID=${WP_CHANNELS_TRAVELFUSION_LOGIN_ID:-}
 export WP_CHANNELS_TRAVELFUSION_HOST=${WP_CHANNELS_TRAVELFUSION_HOST:-api.travelfusion.com}
 export WP_CHANNELS_TRAVELFUSION_PROXY_PASS=${WP_CHANNELS_TRAVELFUSION_PROXY_PASS:-${WP_SERVER_PROXY_PASS:-"https://${WP_CHANNELS_TRAVELFUSION_HOST}"}}
+
+# If travelfusion is enabled (WP_CHANNELS_TRAVELFUSION_LOGIN_ID is set), the supplier parameters are required  - exit if not
+if [ -n "${WP_CHANNELS_TRAVELFUSION_LOGIN_ID}" ]; then
+    if [ -z "${WP_CHANNELS_TRAVELFUSION_SUPPLIER_PARAMETERS}" ]; then
+        echo "TravelFusion enabled but no supplier parameters provided. Please set WP_CHANNELS_TRAVELFUSION_SUPPLIER_PARAMETERS."
+        exit 1
+    fi
+fi
+
 echo "${WP_CHANNELS_TRAVELFUSION_SUPPLIER_PARAMETERS:-}" > tf_config.json
 
 # British Airways NDC
