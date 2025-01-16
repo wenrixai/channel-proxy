@@ -1,0 +1,68 @@
+services:
+  proxy:
+    build: .
+    ports:
+      - "${PROXY_PORT:-8080}:8080"
+    environment:
+      - WP_SERVER_PORT=8080
+      - WP_SERVER_RESOLVER=127.0.0.11
+      - WP_SERVER_DEBUG=true # Enable debug mode to see more logs
+      # Mock settings - all pointing to single httpbin
+      - WP_CHANNELS_BA_HOST=mockserver
+      - WP_CHANNELS_BA_PROXY_PASS=http://mockserver:80
+      - WP_CHANNELS_BA_API_KEY=test-ba-key
+      - WP_CHANNELS_TRAVELFUSION_HOST=mockserver
+      - WP_CHANNELS_TRAVELFUSION_PROXY_PASS=http://mockserver:80
+      - WP_CHANNELS_TRAVELFUSION_LOGIN_ID=test-login
+      - 'WP_CHANNELS_TRAVELFUSION_SUPPLIER_PARAMETERS={"test-iata": {"test-supplier": {"test-login": "test-login"}}}'
+      - WP_CHANNELS_FARELOGIX_AA_HOST=mockserver
+      - WP_CHANNELS_FARELOGIX_AA_PROXY_PASS=http://mockserver:80
+      - WP_CHANNELS_FARELOGIX_AA_API_KEY=test-aa-key
+      - WP_CHANNELS_FARELOGIX_AA_AGENT=test-agent
+      - WP_CHANNELS_FARELOGIX_AA_USERNAME=test-user
+      - WP_CHANNELS_FARELOGIX_AA_PASSWORD=test-pass
+      - WP_CHANNELS_FARELOGIX_AA_AGENT_USER=test-agent-user
+      - WP_CHANNELS_FARELOGIX_AA_AGENT_PASSWORD=test-agent-pass
+    depends_on:
+      mockserver:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  mockserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.mockserver
+    ports:
+      - "8081:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/get"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - PROXY_HOST=proxy
+      - PROXY_PORT=8080
+    depends_on:
+      proxy:
+        condition: service_healthy
+      mockserver:
+        condition: service_healthy
