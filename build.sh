@@ -12,7 +12,7 @@ fi
 TAG_NAME="wenrix/channel-proxy:latest"
 ADDITIONAL_TAGS="wenrix/channel-proxy:1.0 public.ecr.aws/wenrix/wenrix-channel-proxy:latest public.ecr.aws/wenrix/wenrix-channel-proxy:1.0"
 
-"${DOCKER}" buildx build --platform linux/amd64 --load -t "${TAG_NAME}" .
+"${DOCKER}" buildx build --platform linux/amd64 --load -t "${TAG_NAME}" -f docker/Dockerfile docker/
 echo "Built image: ${TAG_NAME}"
 
 for additional_tag in ${ADDITIONAL_TAGS}; do

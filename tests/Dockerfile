@@ -9,10 +9,10 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY tests/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy test files
-COPY tests/ tests/
+COPY *.py ./
 
-CMD ["pytest", "-v", "tests/"]
+CMD ["pytest", "-v", "."]
