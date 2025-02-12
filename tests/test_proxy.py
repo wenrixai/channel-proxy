@@ -81,3 +81,95 @@ def test_farelogix_aa_request(proxy_url):
 
     # Verify URL path
     assert request_info["url"].endswith("/anything")
+
+
+def test_travelfusion_request(proxy_url):
+    """Test that Travelfusion proxy correctly handles the request."""
+    test_headers = {
+        "x-wenrix-operation": "should-be-removed",
+        "x-wenrix-trace-id": "should-be-removed",
+        "x-wenrix-iata-number": "test-iata",
+        "x-wenrix-supplier": "test-supplier",
+        "test-header": "should-remain",
+    }
+
+    # Sample XML request with placeholders
+    test_body = """<?xml version="1.0" encoding="UTF-8"?>
+    <Request>
+        <LoginId>PLACEHOLDER</LoginId>
+        <XmlLoginId>PLACEHOLDER</XmlLoginId>
+        <CustomSupplierParameterList>PLACEHOLDER</CustomSupplierParameterList>
+        <OtherField>unchanged</OtherField>
+    </Request>
+    """
+
+    # Use just the base endpoint without /anything
+    response = requests.post(
+        f"{proxy_url}/channel/travelfusion/anything",
+        data=test_body,
+        headers=test_headers
+    )
+    if response.status_code != 200:
+        print_request_debug(response, test_body, test_headers)
+    assert response.status_code == 200
+
+    # Get request details from httpbin
+    request_info = response.json()
+
+    # Verify headers
+    verify_headers(
+        request_info["headers"],
+        expected_present={
+            "Test-Header": "should-remain",
+            "Content-Type": "text/xml"
+        },
+        expected_absent=[
+            "X-Wenrix-Operation",
+            "X-Wenrix-Trace-Id",
+            "X-Wenrix-Iata-Number",
+            "X-Wenrix-Supplier",
+            "Authorization"
+        ]
+    )
+
+    # Verify body transformations
+    received_body = request_info["data"]  # Note: Using 'data' instead of 'json' since it's XML
+    assert "test-login" in received_body  # LoginId replacement
+    assert "<LoginId>test-login</LoginId>" in received_body
+    assert "<XmlLoginId>test-login</XmlLoginId>" in received_body
+    assert "test-login" in received_body  # From supplier parameters
+    assert "<OtherField>unchanged</OtherField>" in received_body
+
+    # Verify URL path
+    assert request_info["url"].endswith("/anything")
+
+
+def test_travelfusion_request_normal_path(proxy_url):
+    """Test that Travelfusion proxy correctly handles the request."""
+    test_headers = {
+        "x-wenrix-operation": "should-be-removed",
+        "x-wenrix-trace-id": "should-be-removed",
+        "x-wenrix-iata-number": "test-iata",
+        "x-wenrix-supplier": "test-supplier",
+        "test-header": "should-remain",
+    }
+
+    # Sample XML request with placeholders
+    test_body = """<?xml version="1.0" encoding="UTF-8"?>
+    <Request>
+        <LoginId>PLACEHOLDER</LoginId>
+        <XmlLoginId>PLACEHOLDER</XmlLoginId>
+        <CustomSupplierParameterList>PLACEHOLDER</CustomSupplierParameterList>
+        <OtherField>unchanged</OtherField>
+    </Request>
+    """
+
+    # Use just the base endpoint without /anything
+    response = requests.get(
+        f"{proxy_url}/channel/travelfusion",
+        data=test_body,
+        headers=test_headers
+    )
+
+    print_debug_info(response)
+    assert response.status_code == 200

@@ -14,6 +14,7 @@ services:
       - WP_CHANNELS_TRAVELFUSION_HOST=mockserver
       - WP_CHANNELS_TRAVELFUSION_PROXY_PASS=http://mockserver:80
       - WP_CHANNELS_TRAVELFUSION_LOGIN_ID=test-login
+      - WP_CHANNELS_TRAVELFUSION_XML_LOGIN_ID=test-login
       - 'WP_CHANNELS_TRAVELFUSION_SUPPLIER_PARAMETERS={"test-iata": {"test-supplier": {"test-login": "test-login"}}}'
       - WP_CHANNELS_FARELOGIX_AA_HOST=mockserver
       - WP_CHANNELS_FARELOGIX_AA_PROXY_PASS=http://mockserver:80
