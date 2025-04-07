@@ -1,0 +1,145 @@
+replicaCount: 1
+image:
+  repository: wenrix/channel-proxy
+  tag: latest
+  pullPolicy: IfNotPresent
+nameOverride: ""
+fullnameOverride: ""
+serviceAccount:
+  create: false
+  name: ""
+service:
+  type: ClusterIP
+  port: 8080
+ingress:
+  enabled: true
+  annotations: {}
+  hosts:
+    - host: channel-proxy.wenrix.com
+      paths:
+        - path: /
+          pathType: Prefix
+env: []
+# Environment variables example:
+# - name: WP_SERVER_PORT
+#   value: "8080"
+# - name: WP_SERVER_RESOLVER
+#   value: "kube-dns.kube-system.svc.cluster.local"
+# - name: WP_SERVER_DEBUG
+#   value: "false"
+#
+# Basic authentication example:
+# - name: WP_SERVER_HTTP_USER
+#   value: "admin"
+# - name: WP_SERVER_HTTP_PASS
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-http-auth
+#       key: password
+#
+# TLS configuration example:
+# - name: WP_SERVER_TLS_ENABLED
+#   value: "true"
+# - name: WP_SERVER_TLS_PORT
+#   value: "18443"
+# - name: WP_SERVER_TLS_SERVER_NAME
+#   value: "example.com"
+# - name: WP_SERVER_TLS_CERTIFICATE
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-tls
+#       key: tls.crt
+# - name: WP_SERVER_TLS_CERTIFICATE_KEY
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-tls
+#       key: tls.key
+#
+# TravelFusion example:
+# - name: WP_CHANNELS_TRAVELFUSION_LOGIN_ID
+#   value: "login-id"
+# - name: WP_CHANNELS_TRAVELFUSION_XML_LOGIN_ID
+#   value: "xml-login-id"
+# - name: WP_CHANNELS_TRAVELFUSION_HOST
+#   value: "api.travelfusion.com"
+# - name: WP_CHANNELS_TRAVELFUSION_PROXY_PASS
+#   value: "https://api.travelfusion.com"
+# - name: WP_CHANNELS_TRAVELFUSION_SUPPLIER_PARAMETERS
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-travelfusion
+#       key: supplier-parameters
+#
+# British Airways example:
+# - name: WP_CHANNELS_BA_API_KEY
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-ba
+#       key: api-key
+# - name: WP_CHANNELS_BA_MERCHANT_ID
+#   value: "merchant-id"
+# - name: WP_CHANNELS_BA_HOST
+#   value: "api.ba.com"
+# - name: WP_CHANNELS_BA_PROXY_PASS
+#   value: "https://api.ba.com"
+#
+# Farelogix AA example:
+# - name: WP_CHANNELS_FARELOGIX_AA_HOST
+#   value: "aa.farelogix.com"
+# - name: WP_CHANNELS_FARELOGIX_AA_PROXY_PASS
+#   value: "https://aa.farelogix.com"
+# - name: WP_CHANNELS_FARELOGIX_AA_AGENT
+#   value: "agent"
+# - name: WP_CHANNELS_FARELOGIX_AA_API_KEY
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-farelogix-aa
+#       key: api-key
+# - name: WP_CHANNELS_FARELOGIX_AA_USERNAME
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-farelogix-aa
+#       key: username
+# - name: WP_CHANNELS_FARELOGIX_AA_PASSWORD
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-farelogix-aa
+#       key: password
+# - name: WP_CHANNELS_FARELOGIX_AA_AGENT_USER
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-farelogix-aa
+#       key: agent-user
+# - name: WP_CHANNELS_FARELOGIX_AA_AGENT_PASSWORD
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-farelogix-aa
+#       key: agent-password
+
+secrets: {}
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+pdb:
+  enabled: true
+  minAvailable: 1
+nodeSelector: {}
+affinity: {}
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+serviceMonitor:
+  enabled: false
+  labels: {}
+  interval: 30s
+  path: /metrics
