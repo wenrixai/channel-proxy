@@ -1,0 +1,6 @@
+apiVersion: v2
+name: channel-proxy
+description: A Helm chart for Channel Proxy OpenResty application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
