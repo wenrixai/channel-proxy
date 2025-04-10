@@ -1,6 +1,6 @@
 replicaCount: 1
 image:
-  repository: public.ecr.aws/wenrix/wenrix-channel-proxy
+  repository: public.ecr.aws/k7i3e2s7/channel-proxy:latest
   tag: latest
   pullPolicy: IfNotPresent
 nameOverride: ""
