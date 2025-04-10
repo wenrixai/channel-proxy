@@ -1,0 +1,46 @@
+{{- if and .Values.gatewayApi.enabled .Values.gatewayApi.gke -}}
+{{- $fullName := include "channel-proxy.fullname" . -}}
+{{- $svcPort := .Values.service.port -}}
+---
+apiVersion: networking.gke.io/v1
+kind: HealthCheckPolicy
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "channel-proxy.labels" . | nindent 4 }}
+spec:
+  default:
+    checkIntervalSec: {{ .Values.gatewayApi.healthCheckPolicy.checkIntervalSec }}
+    config:
+      httpHealthCheck:
+        requestPath: {{ .Values.gatewayApi.healthCheckPolicy.httpHealthCheckPath }}
+      type: HTTP
+    healthyThreshold: {{ .Values.gatewayApi.healthCheckPolicy.healthyThreshold }}
+    logConfig:
+      enabled: false
+    timeoutSec: {{ .Values.gatewayApi.healthCheckPolicy.timeoutSec }}
+    unhealthyThreshold: {{ .Values.gatewayApi.healthCheckPolicy.unhealthyThreshold }}
+  targetRef:
+    group: ''
+    kind: Service
+    name: {{ $fullName }}
+
+---
+apiVersion: networking.gke.io/v1
+kind: GCPBackendPolicy
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "channel-proxy.labels" . | nindent 4 }}
+spec:
+  default:
+    connectionDraining:
+      drainingTimeoutSec:  {{ .Values.gatewayApi.backendPolicy.drainingTimeoutSec }}
+    logging:
+      enabled: false
+    timeoutSec: {{ .Values.gatewayApi.backendPolicy.timeoutSec }}
+  targetRef:
+    group: ''
+    kind: Service
+    name: {{ $fullName }}
+{{- end }}
