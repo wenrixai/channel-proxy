@@ -1,6 +1,7 @@
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "channel-proxy.fullname" . -}}
 {{- $svcPort := .Values.service.port -}}
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

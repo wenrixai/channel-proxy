@@ -1,6 +1,6 @@
 replicaCount: 1
 image:
-  repository: wenrix/channel-proxy
+  repository: public.ecr.aws/wenrix/wenrix-channel-proxy
   tag: latest
   pullPolicy: IfNotPresent
 nameOverride: ""
@@ -8,6 +8,8 @@ fullnameOverride: ""
 serviceAccount:
   create: false
   name: ""
+  annotations: {}
+  automountToken: false
 service:
   type: ClusterIP
   port: 8080
@@ -19,6 +21,24 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
+gatewayApi:
+  enabled: false
+  gatewayName: ""
+  gke: false
+  annotations: {}
+  healthCheckPolicy:
+    checkIntervalSec: 10
+    httpHealthCheckPath: /
+    healthyThreshold: 1
+    timeoutSec: 10
+    unhealthyThreshold: 3
+  backendPolicy:
+    timeoutSec: 300
+    drainingTimeoutSec: 60
+  hostnames: []
+dnsConfig:
+  enabled: false
+  ndots: 1
 env: []
 # Environment variables example:
 # - name: WP_SERVER_PORT
@@ -130,6 +150,8 @@ autoscaling:
   maxReplicas: 5
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
+  # https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#support-for-configurable-scaling-behavior
+  behavior: {}
 pdb:
   enabled: true
   minAvailable: 1
@@ -138,6 +160,12 @@ affinity: {}
 podAnnotations: {}
 podSecurityContext: {}
 securityContext: {}
+terminationGracePeriodSeconds: 30
+deployStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 2
+    maxUnavailable: 0
 serviceMonitor:
   enabled: false
   labels: {}
