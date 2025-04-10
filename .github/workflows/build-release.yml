@@ -1,0 +1,162 @@
+name: Build, Publish, and Release
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+env:
+  # Docker related env vars
+  REGISTRY_DOCKERHUB: wenrix
+  REGISTRY_DOCKERHUB_ADDITIONAL: wenrix/channel-proxy
+  REGISTRY_ECR: public.ecr.aws/wenrix
+  IMAGE_NAME: channel-proxy
+  # Helm related env vars
+  CHART_DIR: deployment/helm/chart
+  HELM_REGISTRY_ECR: public.ecr.aws/k7i3e2s7/channel-proxy-chart # Note: Different ECR registry than Docker
+  # Common env vars
+  AWS_REGION: us-east-1
+jobs:
+  lint_helm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+      - name: Lint Helm Chart
+        run: helm lint ${{ env.CHART_DIR }}
+  build_and_push_docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        # Fetch all history for version increment and tag info
+        with:
+          fetch-depth: 0
+      - name: Get next version
+        id: version # Ensure the ID matches so subsequent steps can access it
+        uses: reecetech/version-increment@2024.10.1
+        with:
+          scheme: calver # Using CalVer (YYYY.MM.Micro)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to Docker Hub (Primary)
+        if: github.event_name == 'push' # Only login when pushing
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Log in to Docker Hub (Additional)
+        if: github.event_name == 'push' # Only login when pushing
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io # Explicitly specify registry for additional account
+          username: ${{ secrets.ADDITIONAL_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.ADDITIONAL_DOCKERHUB_TOKEN }}
+      - name: Log in to AWS ECR Public (for Docker)
+        # Only login on push to main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Build and push Docker image
+        id: build_push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          # Only push on push to main
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY_DOCKERHUB_ADDITIONAL }}:${{ steps.version.outputs.version }}
+            ${{ env.REGISTRY_DOCKERHUB_ADDITIONAL }}:latest
+            ${{ env.REGISTRY_ECR }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+            ${{ env.REGISTRY_ECR }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+  publish_helm_and_release:
+    runs-on: ubuntu-latest
+    # This job runs ONLY on push to main branch
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [lint_helm, build_and_push_docker] # Depends on successful lint and docker build
+    permissions:
+      contents: write # Needed to create releases
+      packages: write # Needed for pushing Helm chart to ECR
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+      - name: Install yq for parsing Chart.yaml
+        run: sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+      - name: Extract chart name
+        id: chart_name
+        run: |
+          CHART_NAME=$(yq '.name' ${{ env.CHART_DIR }}/Chart.yaml)
+          echo "name=${CHART_NAME}" >> $GITHUB_OUTPUT
+      - name: Log in to AWS ECR Public (for Helm)
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }} # Use common region
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Update Chart.yaml version
+        run: |
+          # Use the version determined in the build_and_push_docker job
+          VERSION=${{ needs.build_and_push_docker.outputs.version }}
+          echo "Updating Chart.yaml to version $VERSION and appVersion $VERSION"
+          yq -i '.version = strenv(VERSION)' ${{ env.CHART_DIR }}/Chart.yaml
+          yq -i '.appVersion = strenv(VERSION)' ${{ env.CHART_DIR }}/Chart.yaml
+          echo "Chart.yaml updated:"
+          cat ${{ env.CHART_DIR }}/Chart.yaml
+      - name: Package Helm Chart
+        run: |
+          # The helm package command now reads the updated version from Chart.yaml
+          # No need to specify --version or --app-version here anymore
+          helm package ${{ env.CHART_DIR }}
+      - name: Push Helm Chart to ECR OCI Registry
+        run: |
+          # The packaged chart name will now automatically include the correct version
+          helm push ${{ steps.chart_name.outputs.name }}-${{ needs.build_and_push_docker.outputs.version }}.tgz oci://${{ env.HELM_REGISTRY_ECR }}
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.build_and_push_docker.outputs.version }} # Create tag like v2024.10.1
+          release_name: Release ${{ needs.build_and_push_docker.outputs.version }}
+          body: |
+            Automatic release for commit ${{ github.sha }} pushed to main.
+            Docker Image: `${{ env.REGISTRY_ECR }}/${{ env.IMAGE_NAME }}:${{ needs.build_and_push_docker.outputs.version }}`
+            Helm Chart: `oci://${{ env.HELM_REGISTRY_ECR }}/${{ steps.chart_name.outputs.name }}:${{ needs.build_and_push_docker.outputs.version }}`
+          draft: false
+          prerelease: false
+      - name: Upload Helm Chart Package to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ steps.chart_name.outputs.name }}-${{ needs.build_and_push_docker.outputs.version }}.tgz
+          asset_name: ${{ steps.chart_name.outputs.name }}-${{ needs.build_and_push_docker.outputs.version }}.tgz
+          asset_content_type: application/gzip
