@@ -11,7 +11,7 @@ The Wenrix Channel Proxy is a Docker-based proxy service that enables travel age
 
 ---
 
-## 🚀 Why Channel Proxy?
+## Why Channel Proxy?
 
 **Credential Handling, Your Way**: Some agencies are comfortable managing airline API credentials directly, while others prefer to keep them as secure as possible. Whether or not credential sharing is a concern for you, the Channel Proxy gives you full control—your credentials always stay within your environment.
 
@@ -28,7 +28,7 @@ The Wenrix Channel Proxy is a Docker-based proxy service that enables travel age
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Supported Channels](#supported-channels)
 - [Quick Start](#quick-start)
@@ -37,13 +37,12 @@ The Wenrix Channel Proxy is a Docker-based proxy service that enables travel age
 - [Environment Variables](#environment-variables-reference)
 - [Configuration Examples](#configuration-examples)
 - [Security & TLS](#security--tls)
-- [Monitoring](#monitoring--health-checks)
-- [Development](#development--testing)
+- [Monitoring & Health Checks](#monitoring--health-checks)
 - [Support](#support)
 
 ---
 
-## ✈️ Supported Channels
+## Supported Channels
 
 | Channel | Type | Endpoints | Features |
 |---------|------|-----------|----------|
@@ -57,7 +56,7 @@ The Wenrix Channel Proxy is a Docker-based proxy service that enables travel age
 
 ---
 
-## 🏃 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Docker 20.0+ or Kubernetes 1.19+
@@ -94,7 +93,7 @@ curl http://localhost:8080/metrics
 
 ---
 
-## 🔗 Integration Guide
+## Integration Guide
 
 ### How It Works
 
@@ -153,7 +152,7 @@ For production deployment, see the detailed [Deployment Options](#deployment-opt
 
 ---
 
-## 🚢 Deployment Options
+## Deployment Options
 
 ### Option 1: Deploy Pre-built Images
 
@@ -212,7 +211,7 @@ helm install channel-proxy deployment/helm/chart/ \
 
 ---
 
-## ⚙️ Environment Variables Reference
+## Environment Variables Reference
 
 ### Server Configuration
 
@@ -268,7 +267,7 @@ Replace `[AIRLINE]` with `AA`, `LH`, or `UA`.
 
 ---
 
-## 📝 Configuration Examples
+## Configuration Examples
 
 ### Complete .env File Example
 
@@ -306,7 +305,7 @@ Replace:
 
 ---
 
-## 🔐 Security & TLS
+## Security & TLS
 
 ### TLS Configuration
 
@@ -343,7 +342,7 @@ WP_SERVER_HTTP_PASS=secure-random-password
 
 ---
 
-## 📊 Monitoring & Health Checks
+## Monitoring & Health Checks
 
 ### Built-in Endpoints
 
@@ -364,7 +363,7 @@ curl http://localhost:8080/metrics
 # Expected: Basic NGINX connection counts and server statistics
 ```
 
-## 🆘 Support
+## Support
 
 ### Getting Help
 For technical issues, configuration help, or troubleshooting assistance, contact **support@wenrix.com** or reach out to your **dedicated Wenrix squad** for personalized help.
@@ -381,6 +380,6 @@ We welcome contributions!
 
 ---
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
