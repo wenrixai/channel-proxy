@@ -20,7 +20,7 @@ The Wenrix Channel Proxy is a Docker-based proxy service that enables travel age
 ### Key Benefits
 
 - **🔒 Enhanced Security**: Credentials remain in your environment - never shared
-- **⚡ High Performance**: Built on NGINX for minimal latency and maximum throughput  
+- **⚡ High Performance**: Built on NGINX for minimal latency and maximum throughput
 - **📈 Scalable**: Kubernetes-ready with auto-scaling and load balancing
 - **🔧 Easy Integration**: RESTful API with comprehensive documentation
 - **📊 Observable**: Built-in metrics, logging, and health checks
@@ -118,7 +118,7 @@ WP_CHANNELS_TRAVELFUSION_SUPPLIER_PARAMETERS={"12345678": {"airfranceklm": {"Age
 > **Note**: The `SUPPLIER_PARAMETERS` JSON is written to `tf_config.json` at startup and loaded by the Lua script for credential mapping.
 
 **Farelogix American Airlines Example (.env file):**
-```bash  
+```bash
 # Create .env file
 WP_CHANNELS_FARELOGIX_AA_API_KEY=your-aa-api-key
 WP_CHANNELS_FARELOGIX_AA_AGENT=your-agent-id
@@ -164,7 +164,7 @@ For production deployment, see the detailed [Deployment Options](#deployment-opt
 
 **Use Cases:**
 - Standard channel integrations
-- Quick proof-of-concepts  
+- Quick proof-of-concepts
 - Production deployments with standard requirements
 
 **Docker Deployment:**
