@@ -135,6 +135,39 @@ env: []
 #     secretKeyRef:
 #       name: channel-proxy-farelogix-aa
 #       key: agent-password
+#
+# Farelogix EK example:
+# - name: WP_CHANNELS_FARELOGIX_EK_HOST
+#   value: "ek.farelogix.com"
+# - name: WP_CHANNELS_FARELOGIX_EK_PROXY_PASS
+#   value: "https://ek.farelogix.com"
+# - name: WP_CHANNELS_FARELOGIX_EK_AGENT
+#   value: "agent"
+# - name: WP_CHANNELS_FARELOGIX_EK_API_KEY
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-farelogix-ek
+#       key: api-key
+# - name: WP_CHANNELS_FARELOGIX_EK_USERNAME
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-farelogix-ek
+#       key: username
+# - name: WP_CHANNELS_FARELOGIX_EK_PASSWORD
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-farelogix-ek
+#       key: password
+# - name: WP_CHANNELS_FARELOGIX_EK_AGENT_USER
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-farelogix-ek
+#       key: agent-user
+# - name: WP_CHANNELS_FARELOGIX_EK_AGENT_PASSWORD
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-farelogix-ek
+#       key: agent-password
 
 secrets: {}
 resources:

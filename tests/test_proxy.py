@@ -56,7 +56,11 @@ def test_farelogix_aa_request(proxy_url):
 
     request_headers = {"test-header": "should-remain"}
 
-    response = requests.post(f"{proxy_url}/channel/farelogix-aa/anything", json=test_body, headers=request_headers)
+    response = requests.post(
+        f"{proxy_url}/channel/farelogix-aa/anything",
+        json=test_body,
+        headers=request_headers,
+    )
     if response.status_code != 200:
         print_request_debug(response, test_body, request_headers)
     assert response.status_code == 200
@@ -67,7 +71,10 @@ def test_farelogix_aa_request(proxy_url):
     # Verify headers
     verify_headers(
         request_info["headers"],
-        expected_present={"Test-Header": "should-remain", "Ocp-Apim-Subscription-Key": "test-aa-key"},
+        expected_present={
+            "Test-Header": "should-remain",
+            "Ocp-Apim-Subscription-Key": "test-aa-key",
+        },
         expected_absent=[],
     )
 
@@ -78,6 +85,54 @@ def test_farelogix_aa_request(proxy_url):
     assert received_body["agent"] == "test-agent"
     assert received_body["agentUser"] == "test-agent-user"
     assert received_body["agentPassword"] == "test-agent-pass"
+    assert received_body["otherField"] == "unchanged"  # Verify unchanged fields
+
+    # Verify URL path
+    assert request_info["url"].endswith("/anything")
+
+
+def test_farelogix_ek_request(proxy_url):
+    """Test that Farelogix EK proxy correctly handles the request."""
+    test_body = {
+        "username": "#FLX_USERNAME#",
+        "password": "#FLX_PASSWORD#",
+        "agent": "#FLX_AGENT#",
+        "agentUser": "#FLX_AGENT_USER#",
+        "agentPassword": "#FLX_AGENT_PASSWORD#",
+        "otherField": "unchanged",
+    }
+
+    request_headers = {"test-header": "should-remain"}
+
+    response = requests.post(
+        f"{proxy_url}/channel/farelogix-ek/anything",
+        json=test_body,
+        headers=request_headers,
+    )
+    if response.status_code != 200:
+        print_request_debug(response, test_body, request_headers)
+    assert response.status_code == 200
+
+    # Get request details from httpbin
+    request_info = response.json()
+
+    # Verify headers
+    verify_headers(
+        request_info["headers"],
+        expected_present={
+            "Test-Header": "should-remain",
+            "Ocp-Apim-Subscription-Key": "test-ek-key",
+        },
+        expected_absent=[],
+    )
+
+    # Verify body transformations
+    received_body = request_info["json"]
+    assert received_body["username"] == "test-ek-user"
+    assert received_body["password"] == "test-ek-pass"
+    assert received_body["agent"] == "test-ek-agent"
+    assert received_body["agentUser"] == "test-ek-agent-user"
+    assert received_body["agentPassword"] == "test-ek-agent-pass"
     assert received_body["otherField"] == "unchanged"  # Verify unchanged fields
 
     # Verify URL path
@@ -105,7 +160,11 @@ def test_travelfusion_request(proxy_url):
     """
 
     # Use just the base endpoint without /anything
-    response = requests.post(f"{proxy_url}/channel/travelfusion/anything", data=test_body, headers=test_headers)
+    response = requests.post(
+        f"{proxy_url}/channel/travelfusion/anything",
+        data=test_body,
+        headers=test_headers,
+    )
     if response.status_code != 200:
         print_request_debug(response, test_body, test_headers)
     assert response.status_code == 200
@@ -146,7 +205,10 @@ def test_travelfusion_request(proxy_url):
 
 def test_travelfusion_request_normal_path(proxy_url):
     """Test that Travelfusion proxy correctly handles the request."""
-    test_headers = {"x-wenrix-operation": "should-be-removed", "x-wenrix-trace-id": "should-be-removed"}
+    test_headers = {
+        "x-wenrix-operation": "should-be-removed",
+        "x-wenrix-trace-id": "should-be-removed",
+    }
 
     # Sample XML request with placeholders
     test_body = """<?xml version="1.0" encoding="UTF-8"?>
