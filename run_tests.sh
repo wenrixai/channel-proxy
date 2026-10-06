@@ -7,7 +7,7 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 # Function to cleanup on exit
-# shellcheck disable=SC2317
+# shellcheck disable=SC2317,SC2329
 cleanup() {
     echo "Cleaning up containers..."
     docker compose down -v

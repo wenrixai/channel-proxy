@@ -20,9 +20,9 @@ def verify_headers(received_headers, expected_present, expected_absent):
     # Check that expected headers are present with correct values
     for header, value in expected_present.items():
         assert header.lower() in {k.lower() for k in received_headers.keys()}, f"Missing header: {header}"
-        assert any(
-            v == value for k, v in received_headers.items() if k.lower() == header.lower()
-        ), f"Header {header} has wrong value. Expected {value}"
+        assert any(v == value for k, v in received_headers.items() if k.lower() == header.lower()), (
+            f"Header {header} has wrong value. Expected {value}"
+        )
 
     # Check that certain headers are not present
     present_headers = {k.lower() for k in received_headers.keys()}
