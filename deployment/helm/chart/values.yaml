@@ -136,6 +136,16 @@ env: []
 #       name: channel-proxy-farelogix-aa
 #       key: agent-password
 #
+# Farelogix AA extra accounts example, served at /channel/farelogix-aa/<account>/
+# (host / proxy pass default to the airline's; AGENT, USERNAME, PASSWORD, AGENT_USER, AGENT_PASSWORD as above):
+# - name: WP_CHANNELS_FARELOGIX_AA_ACCOUNTS
+#   value: "cad"
+# - name: WP_CHANNELS_FARELOGIX_AA_CAD_API_KEY
+#   valueFrom:
+#     secretKeyRef:
+#       name: channel-proxy-farelogix-aa-cad
+#       key: api-key
+#
 # Farelogix EK example:
 # - name: WP_CHANNELS_FARELOGIX_EK_HOST
 #   value: "ek.farelogix.com"

@@ -155,6 +155,72 @@ export WP_CHANNELS_FARELOGIX_EK_PASSWORD=${WP_CHANNELS_FARELOGIX_EK_PASSWORD:-}
 export WP_CHANNELS_FARELOGIX_EK_AGENT_USER=${WP_CHANNELS_FARELOGIX_EK_AGENT_USER:-}
 export WP_CHANNELS_FARELOGIX_EK_AGENT_PASSWORD=${WP_CHANNELS_FARELOGIX_EK_AGENT_PASSWORD:-}
 
+# Farelogix accounts - extra credential sets per airline, e.g.
+#   WP_CHANNELS_FARELOGIX_AA_ACCOUNTS=cad,usd
+#   /channel/farelogix-aa/cad/... -> WP_CHANNELS_FARELOGIX_AA_CAD_{API_KEY,AGENT,USERNAME,PASSWORD,AGENT_USER,AGENT_PASSWORD}
+# Host / proxy pass default to the airline's. Locations are included above the airline's own location, so they match first.
+FARELOGIX_AIRLINES="AA LH UA EK"
+FARELOGIX_CREDENTIALS="API_KEY AGENT USERNAME PASSWORD AGENT_USER AGENT_PASSWORD"
+FARELOGIX_ACCOUNT_TEMPLATE=/etc/nginx/farelogix_account.conf.template
+NGINX_INCLUDES_DIR=/etc/nginx/includes
+
+render_flx_account() {
+    local airline=$1
+    local account=$2
+    local airline_prefix="WP_CHANNELS_FARELOGIX_${airline}"
+    local prefix="${airline_prefix}_${account^^}"
+    local output="${NGINX_INCLUDES_DIR}/farelogix_${airline,,}_${account,,}.conf"
+
+    # The account becomes part of env var names and the URL path
+    if [[ ! "$account" =~ ^[A-Za-z0-9]+$ ]]; then
+        echo "Invalid Farelogix ${airline} account '${account}'. Use letters and digits only."
+        exit 1
+    fi
+
+    local api_key_var="${prefix}_API_KEY"
+    if [ -z "${!api_key_var:-}" ]; then
+        echo "Farelogix ${airline} account '${account}' declared but ${api_key_var} is not set."
+        exit 1
+    fi
+
+    # Exported for envsubst only, scoped to this function
+    local host_var="${prefix}_HOST" airline_host_var="${airline_prefix}_HOST"
+    local proxy_pass_var="${prefix}_PROXY_PASS" airline_proxy_pass_var="${airline_prefix}_PROXY_PASS"
+    local -x LOCATION_PATH="${airline,,}/${account,,}"
+    local -x HOST="${!host_var:-${!airline_host_var}}"
+    local -x PROXY_PASS="${!airline_proxy_pass_var}"
+
+    # Own host -> own proxy pass, same fallback chain as the airline
+    if [ -n "${!host_var:-}" ]; then
+        PROXY_PASS="${WP_SERVER_PROXY_PASS:-"https://${HOST}"}"
+    fi
+    PROXY_PASS="${!proxy_pass_var:-${PROXY_PASS}}"
+
+    local credential credential_var
+    for credential in $FARELOGIX_CREDENTIALS; do
+        credential_var="${prefix}_${credential}"
+        local -x "${credential}=${!credential_var:-}"
+    done
+
+    # Explicit variable list keeps nginx variables such as $1 intact
+    # shellcheck disable=SC2016
+    envsubst '${LOCATION_PATH} ${HOST} ${PROXY_PASS} ${API_KEY} ${AGENT} ${USERNAME} ${PASSWORD} ${AGENT_USER} ${AGENT_PASSWORD}' \
+        < "$FARELOGIX_ACCOUNT_TEMPLATE" > "$output"
+
+    WP_SERVER_FILE_INCLUDES="${WP_SERVER_FILE_INCLUDES:-}include ${output}; "
+}
+
+for airline in $FARELOGIX_AIRLINES; do
+    accounts_var="WP_CHANNELS_FARELOGIX_${airline}_ACCOUNTS"
+    accounts="${!accounts_var:-}"
+
+    for account in ${accounts//,/ }; do
+        render_flx_account "$airline" "$account"
+    done
+done
+
+export WP_SERVER_FILE_INCLUDES=${WP_SERVER_FILE_INCLUDES:-}
+
 # ---------
 
 # Replace environment variables in the nginx configuration
