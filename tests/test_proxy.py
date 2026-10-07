@@ -91,6 +91,42 @@ def test_farelogix_aa_request(proxy_url):
     assert request_info["url"].endswith("/anything")
 
 
+def test_farelogix_aa_account_request(proxy_url):
+    """Test that a Farelogix AA account uses its own credentials, not the airline's."""
+    test_body = {
+        "username": "#FLX_USERNAME#",
+        "password": "#FLX_PASSWORD#",
+        "agent": "#FLX_AGENT#",
+        "agentUser": "#FLX_AGENT_USER#",
+        "agentPassword": "#FLX_AGENT_PASSWORD#",
+    }
+
+    response = requests.post(f"{proxy_url}/channel/farelogix-aa/cad/anything", json=test_body)
+    if response.status_code != 200:
+        print_request_debug(response, test_body, {})
+    assert response.status_code == 200
+
+    request_info = response.json()
+
+    verify_headers(
+        request_info["headers"],
+        expected_present={"Ocp-Apim-Subscription-Key": "test-aa-cad-key"},
+        expected_absent=[],
+    )
+
+    assert request_info["json"] == {
+        "username": "test-cad-user",
+        "password": "test-cad-pass",
+        "agent": "test-cad-agent",
+        "agentUser": "test-cad-agent-user",
+        "agentPassword": "test-cad-agent-pass",
+    }
+
+    # Account segment is not forwarded upstream
+    assert request_info["url"].endswith("/anything")
+    assert "/cad/" not in request_info["url"]
+
+
 def test_farelogix_ek_request(proxy_url):
     """Test that Farelogix EK proxy correctly handles the request."""
     test_body = {

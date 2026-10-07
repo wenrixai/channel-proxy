@@ -45,6 +45,10 @@ request ─► location ~ ^/channel/<name>/(.*)
 - **Placeholders**: Farelogix bodies use `#FLX_USERNAME#`, `#FLX_PASSWORD#`, `#FLX_AGENT#`, `#FLX_AGENT_USER#`,
   `#FLX_AGENT_PASSWORD#`. Travelfusion XML uses `<LoginId>PLACEHOLDER</LoginId>`, `<XmlLoginId>PLACEHOLDER</XmlLoginId>`,
   `<CustomSupplierParameterList>PLACEHOLDER</CustomSupplierParameterList>`.
+- **Farelogix accounts**: `WP_CHANNELS_FARELOGIX_<AIRLINE>_ACCOUNTS=cad,usd` adds `/channel/farelogix-<airline>/<account>/`
+  locations with `WP_CHANNELS_FARELOGIX_<AIRLINE>_<ACCOUNT>_*` creds, rendered by `start.sh` from
+  `farelogix_account.conf.template` into `/etc/nginx/includes/`. They're included via `$WP_SERVER_FILE_INCLUDES` above the
+  legacy locations, so they match first; an account id must not equal the upstream's first path segment.
 - **Travelfusion supplier params**: `WP_CHANNELS_TRAVELFUSION_SUPPLIER_PARAMETERS` (JSON, shape in `tf_config.json`)
   is written to `/tf_config.json` at startup and looked up per request by `x-wenrix-iata-number` + `x-wenrix-supplier`
   headers via `travelfusion.lua`. Required when `WP_CHANNELS_TRAVELFUSION_LOGIN_ID` is set.
@@ -56,7 +60,7 @@ request ─► location ~ ^/channel/<name>/(.*)
 
 Follow commit `6294239` (Farelogix EK). Touch all of:
 1. `nginx.conf` — new `location` block (copy closest existing channel).
-2. `start.sh` — export `WP_CHANNELS_<NAME>_*` with defaults.
+2. `start.sh` — export `WP_CHANNELS_<NAME>_*` with defaults (new FLX airline: also add to `FARELOGIX_AIRLINES`).
 3. `docker-compose.yml` — point `*_HOST`/`*_PROXY_PASS` at `mockserver`, set test credentials.
 4. `tests/test_proxy.py` — header stripping + placeholder substitution test.
 5. `deployment/helm/chart/values.yaml` — commented env example.

@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY nginx.conf /etc/nginx/nginx.conf.template
+COPY farelogix_account.conf.template /etc/nginx/
+RUN mkdir -p /etc/nginx/includes
 
 WORKDIR /
 COPY start.sh /
